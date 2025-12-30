@@ -649,6 +649,7 @@ function Library:MakeWindow(WindowConfig)
 		Font = Enum.Font.GothamBlack,
 		TextSize = 20
 	}), "Text")
+	WindowName.TextColor3 = Library.AccentColor
 
 	local WindowTopBarLine = AddThemeObject(SetProps(MakeElement("Frame"), {
 		Size = UDim2.new(1, 0, 0, 1),
@@ -1075,7 +1076,7 @@ function Library:MakeWindow(WindowConfig)
 				SliderConfig.Default = SliderConfig.Default or 50
 				SliderConfig.Callback = SliderConfig.Callback or function() end
 				SliderConfig.ValueName = SliderConfig.ValueName or ""
-				SliderConfig.Color = SliderConfig.Color or Color3.fromRGB(9, 149, 98)
+				SliderConfig.Color = SliderConfig.Color or Library.AccentColor
 				SliderConfig.Flag = SliderConfig.Flag or nil
 				SliderConfig.Save = SliderConfig.Save or false
 
