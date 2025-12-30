@@ -1,6 +1,7 @@
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
@@ -16,6 +17,7 @@ local Library = {
 			Second = Color3.fromRGB(30, 30, 32),   
 			Stroke = Color3.fromRGB(60, 60, 65),   
 			Divider = Color3.fromRGB(40, 40, 45),
+			Accent = Color3.fromRGB(0, 120, 255),
 			Text = Color3.fromRGB(240, 240, 245),
 			TextDark = Color3.fromRGB(160, 160, 165) 
 		}
@@ -23,7 +25,8 @@ local Library = {
 	SelectedTheme = "Default",
 	Folder = nil,
 	SaveCfg = false,
-	Font = Enum.Font.Gotham
+	Font = Enum.Font.Gotham,
+	AccentColor = Color3.fromRGB(0, 120, 255)
 }
 
 -- Remove external HTTP requests and icons
@@ -178,6 +181,69 @@ local function SetTheme()
 	end    
 end
 
+local function CopyTable(From)
+	local To = {}
+	for k, v in pairs(From or {}) do
+		if type(v) == "table" then
+			To[k] = CopyTable(v)
+		else
+			To[k] = v
+		end
+	end
+	return To
+end
+
+local function MergeTable(Base, Override)
+	local Out = CopyTable(Base)
+	for k, v in pairs(Override or {}) do
+		if type(v) == "table" and type(Out[k]) == "table" then
+			Out[k] = MergeTable(Out[k], v)
+		else
+			Out[k] = v
+		end
+	end
+	return Out
+end
+
+function Library:Setup(SetupConfig)
+	SetupConfig = SetupConfig or {}
+	if SetupConfig.Font then
+		self.Font = SetupConfig.Font
+	end
+	if SetupConfig.Theme then
+		if type(SetupConfig.Theme) == "string" then
+			self:SetTheme(SetupConfig.Theme)
+		elseif type(SetupConfig.Theme) == "table" then
+			self.Themes.Custom = MergeTable(self.Themes.Default, SetupConfig.Theme)
+			self.SelectedTheme = "Custom"
+			self.AccentColor = self.Themes.Custom.Accent or self.AccentColor
+			SetTheme()
+		end
+	end
+	if SetupConfig.Accent then
+		self:SetAccent(SetupConfig.Accent)
+	end
+end
+
+function Library:SetTheme(ThemeName)
+	if self.Themes[ThemeName] then
+		self.SelectedTheme = ThemeName
+		if self.Themes[self.SelectedTheme].Accent then
+			self.AccentColor = self.Themes[self.SelectedTheme].Accent
+		end
+		SetTheme()
+	end
+end
+
+function Library:SetAccent(Color)
+	if typeof(Color) == "Color3" then
+		self.AccentColor = Color
+		if self.Themes[self.SelectedTheme] then
+			self.Themes[self.SelectedTheme].Accent = Color
+		end
+	end
+end
+
 local function PackColor(Color)
 	return {R = Color.R * 255, G = Color.G * 255, B = Color.B * 255}
 end    
@@ -214,6 +280,19 @@ local function SaveCfg(Name)
 			end
 		end	
 	end
+	if not Library.SaveCfg then
+		return
+	end
+	pcall(function()
+		if type(writefile) == "function" and type(isfolder) == "function" and type(makefolder) == "function" then
+			if Library.Folder and not isfolder(Library.Folder) then
+				makefolder(Library.Folder)
+			end
+			if Library.Folder then
+				writefile(Library.Folder .. "/" .. tostring(Name) .. ".txt", HttpService:JSONEncode(Data))
+			end
+		end
+	end)
 end
 
 local WhitelistedMouse = {Enum.UserInputType.MouseButton1, Enum.UserInputType.MouseButton2,Enum.UserInputType.MouseButton3,Enum.UserInputType.Touch}
@@ -338,7 +417,7 @@ CreateElement("Label", function(Text, TextSize, Transparency)
 		TextColor3 = Color3.fromRGB(240, 240, 240),
 		TextTransparency = Transparency or 0,
 		TextSize = TextSize or 15,
-		Font = Enum.Font.GothamSemibold,
+		Font = Enum.Font.Gotham,
 		RichText = true,
 		BackgroundTransparency = 1,
 		TextXAlignment = Enum.TextXAlignment.Left
@@ -455,6 +534,12 @@ function Library:MakeWindow(WindowConfig)
 	WindowConfig.IntroIcon = WindowConfig.IntroIcon or "rbxassetid://8834748103"
 	Library.Folder = WindowConfig.ConfigFolder
 	Library.SaveCfg = WindowConfig.SaveConfig
+	if WindowConfig.Theme then
+		Library:Setup({Theme = WindowConfig.Theme})
+	end
+	if WindowConfig.AccentColor then
+		Library:SetAccent(WindowConfig.AccentColor)
+	end
 
 	if WindowConfig.SaveConfig then
 		if not isfolder(WindowConfig.ConfigFolder) then
@@ -767,8 +852,8 @@ function Library:MakeWindow(WindowConfig)
 			for _, Tab in next, TabHolder:GetChildren() do
 				if Tab:IsA("TextButton") then
 					Tab.Title.Font = Enum.Font.GothamBlack
-TweenService:Create(Tab.Ico, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = 0.4, ImageColor3 = Color3.fromRGB(240, 240, 240)}):Play()
-TweenService:Create(Tab.Title, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {TextTransparency = 0.4, TextColor3 = Color3.fromRGB(240, 240, 240)}):Play()
+					TweenService:Create(Tab.Ico, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = 0.4, ImageColor3 = Color3.fromRGB(240, 240, 240)}):Play()
+					TweenService:Create(Tab.Title, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {TextTransparency = 0.4, TextColor3 = Color3.fromRGB(240, 240, 240)}):Play()
 				end    
 			end
 			for _, ItemContainer in next, MainWindow:GetChildren() do
@@ -776,8 +861,8 @@ TweenService:Create(Tab.Title, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.
 					ItemContainer.Visible = false
 				end    
 			end  
-TweenService:Create(TabFrame.Ico, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = 0, ImageColor3 = Color3.fromRGB(70, 150, 255)}):Play()
-TweenService:Create(TabFrame.Title, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {TextTransparency = 0, TextColor3 = Color3.fromRGB(70, 150, 255)}):Play()
+			TweenService:Create(TabFrame.Ico, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = 0, ImageColor3 = Library.AccentColor}):Play()
+			TweenService:Create(TabFrame.Title, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {TextTransparency = 0, TextColor3 = Library.AccentColor}):Play()
 			TabFrame.Title.Font = Enum.Font.GothamBlack
 			Container.Visible = true   
 		end)
@@ -903,15 +988,12 @@ TweenService:Create(TabFrame.Title, TweenInfo.new(0.25, Enum.EasingStyle.Quint, 
 				ToggleConfig.Name = ToggleConfig.Name or "Toggle"
 				ToggleConfig.Default = ToggleConfig.Default or false
 				ToggleConfig.Callback = ToggleConfig.Callback or function() end
-				ToggleConfig.Color = ToggleConfig.Color or Color3.fromRGB(9, 99, 195)
+				ToggleConfig.Color = ToggleConfig.Color or Library.AccentColor
 				ToggleConfig.Flag = ToggleConfig.Flag or nil
 				ToggleConfig.Save = ToggleConfig.Save or false
 
 				local Toggle = {Value = ToggleConfig.Default, Save = ToggleConfig.Save}
-
-				local Click = SetProps(MakeElement("Button"), {
-					Size = UDim2.new(1, 0, 1, 0)
-				})
+				local Dragging = false
 
 				local ToggleBox = SetChildren(SetProps(MakeElement("RoundFrame", ToggleConfig.Color, 0, 4), {
 					Size = UDim2.new(0, 24, 0, 24),
@@ -944,20 +1026,22 @@ TweenService:Create(TabFrame.Title, TweenInfo.new(0.25, Enum.EasingStyle.Quint, 
 					}), "Text"),
 					AddThemeObject(MakeElement("Stroke"), "Stroke"),
 					ToggleBox,
-					Click
+					SetProps(MakeElement("Button"), {
+						Size = UDim2.new(1, 0, 1, 0)
+					})
 				}), "Second")
 
 				function Toggle:Set(Value)
 					Toggle.Value = Value
-					TweenService:Create(ToggleBox, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Toggle.Value and ToggleConfig.Color or Library.Themes.Default.Divider}):Play()
-					TweenService:Create(ToggleBox.Stroke, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Color = Toggle.Value and ToggleConfig.Color or Library.Themes.Default.Stroke}):Play()
+					TweenService:Create(ToggleBox, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Toggle.Value and ToggleConfig.Color or Library.Themes[Library.SelectedTheme].Divider}):Play()
+					TweenService:Create(ToggleBox.Stroke, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Color = Toggle.Value and ToggleConfig.Color or Library.Themes[Library.SelectedTheme].Stroke}):Play()
 					TweenService:Create(ToggleBox.Ico, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = Toggle.Value and 0 or 1, Size = Toggle.Value and UDim2.new(0, 20, 0, 20) or UDim2.new(0, 8, 0, 8)}):Play()
 					ToggleConfig.Callback(Toggle.Value)
 				end    
 
 				Toggle:Set(Toggle.Value)
 
-				AddConnection(Click.MouseEnter, function()
+				AddConnection(ToggleFrame.Button.MouseEnter, function()
 					TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(Library.Themes[Library.SelectedTheme].Second.R * 255 + 3, Library.Themes[Library.SelectedTheme].Second.G * 255 + 3, Library.Themes[Library.SelectedTheme].Second.B * 255 + 3)}):Play()
 				end)
 
