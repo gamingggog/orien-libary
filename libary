@@ -103,7 +103,9 @@ do
     end
 end
 
-return OrionLib
+if true then
+    return OrionLib
+end
 
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -113,7 +115,24 @@ local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
 local Library = {
-	Elements = {},
+    Elements = {},
+    ThemeObjects = {},
+    Connections = {},
+    Flags = {},
+    Themes = {
+        Default = {
+            Main = Color3.fromRGB(20, 20, 22),   
+            Second = Color3.fromRGB(30, 30, 32),   
+            Stroke = Color3.fromRGB(60, 60, 65),   
+            Divider = Color3.fromRGB(40, 40, 45),
+            Text = Color3.fromRGB(240, 240, 245),
+            TextDark = Color3.fromRGB(160, 160, 165) 
+        }
+    },
+    SelectedTheme = "Default",
+    Folder = nil,
+    SaveCfg = false,
+    Font = Enum.Font.Gotham
 	ThemeObjects = {},
 	Connections = {},
 	Flags = {},
