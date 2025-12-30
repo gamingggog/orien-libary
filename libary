@@ -1045,17 +1045,17 @@ function Library:MakeWindow(WindowConfig)
 					TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(Library.Themes[Library.SelectedTheme].Second.R * 255 + 3, Library.Themes[Library.SelectedTheme].Second.G * 255 + 3, Library.Themes[Library.SelectedTheme].Second.B * 255 + 3)}):Play()
 				end)
 
-				AddConnection(Click.MouseLeave, function()
+				AddConnection(ToggleFrame.Button.MouseLeave, function()
 					TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Library.Themes[Library.SelectedTheme].Second}):Play()
 				end)
 
-				AddConnection(Click.MouseButton1Up, function()
+				AddConnection(ToggleFrame.Button.MouseButton1Up, function()
 					TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(Library.Themes[Library.SelectedTheme].Second.R * 255 + 3, Library.Themes[Library.SelectedTheme].Second.G * 255 + 3, Library.Themes[Library.SelectedTheme].Second.B * 255 + 3)}):Play()
 					SaveCfg(game.GameId)
 					Toggle:Set(not Toggle.Value)
 				end)
 
-				AddConnection(Click.MouseButton1Down, function()
+				AddConnection(ToggleFrame.Button.MouseButton1Down, function()
 					TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(Library.Themes[Library.SelectedTheme].Second.R * 255 + 6, Library.Themes[Library.SelectedTheme].Second.G * 255 + 6, Library.Themes[Library.SelectedTheme].Second.B * 255 + 6)}):Play()
 				end)
 
